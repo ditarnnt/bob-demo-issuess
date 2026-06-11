@@ -64,11 +64,11 @@ app.post('/api/register', function(req, res) {
     // BAD PRACTICE: Synchronous bcrypt - blocks event loop
     var hashedPassword = bcrypt.hashSync(password, 10);
     
-    // BAD PRACTICE: SQL injection vulnerable - no prepared statements
-    var query = "INSERT INTO users (name, email, password) VALUES ('" + name + "', '" + email + "', '" + hashedPassword + "')";
+    // FIXED: Using parameterized query to prevent SQL injection
+    var query = "INSERT INTO users (name, email, password) VALUES (?, ?, ?)";
     
     // BAD PRACTICE: No error handling
-    db.query(query, function(err, result) {
+    db.query(query, [name, email, hashedPassword], function(err, result) {
         if (err) {
             // BAD PRACTICE: Exposing internal error to client
             res.status(500).send(err);
@@ -83,10 +83,10 @@ app.post('/api/login', function(req, res) {
     var email = req.body.email;
     var password = req.body.password;
     
-    // BAD PRACTICE: SQL injection vulnerable
-    var query = "SELECT * FROM users WHERE email = '" + email + "'";
+    // FIXED: Using parameterized query to prevent SQL injection
+    var query = "SELECT * FROM users WHERE email = ?";
     
-    db.query(query, function(err, results) {
+    db.query(query, [email], function(err, results) {
         if (err) {
             res.status(500).send(err);
         }
@@ -118,13 +118,10 @@ app.post('/api/loan-application', function(req, res) {
     // BAD PRACTICE: Accepting all data without validation
     var data = req.body;
     
-    // BAD PRACTICE: SQL injection vulnerable
-    var query = "INSERT INTO loan_applications (user_id, full_name, nik, email, phone, address, occupation, income, loan_type, amount, purpose, status) VALUES (" +
-        data.userId + ", '" + data.fullName + "', '" + data.nik + "', '" + data.email + "', '" + 
-        data.phone + "', '" + data.address + "', '" + data.occupation + "', " + data.income + ", '" + 
-        data.loanType + "', " + data.amount + ", '" + data.purpose + "', 'pending')";
+    // FIXED: Using parameterized query to prevent SQL injection
+    var query = "INSERT INTO loan_applications (user_id, full_name, nik, email, phone, address, occupation, income, loan_type, amount, purpose, status) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 'pending')";
     
-    db.query(query, function(err, result) {
+    db.query(query, [data.userId, data.fullName, data.nik, data.email, data.phone, data.address, data.occupation, data.income, data.loanType, data.amount, data.purpose], function(err, result) {
         if (err) {
             res.status(500).send(err);
         } else {
@@ -152,10 +149,10 @@ app.get('/api/loan-applications', function(req, res) {
 app.put('/api/loan-applications/:id/approve', function(req, res) {
     var id = req.params.id;
     
-    // BAD PRACTICE: SQL injection vulnerable
-    var query = "UPDATE loan_applications SET status = 'approved' WHERE id = " + id;
+    // FIXED: Using parameterized query to prevent SQL injection
+    var query = "UPDATE loan_applications SET status = 'approved' WHERE id = ?";
     
-    db.query(query, function(err, result) {
+    db.query(query, [id], function(err, result) {
         if (err) {
             res.status(500).send(err);
         } else {
@@ -168,10 +165,10 @@ app.put('/api/loan-applications/:id/approve', function(req, res) {
 app.delete('/api/loan-applications/:id', function(req, res) {
     var id = req.params.id;
     
-    // BAD PRACTICE: Hard delete without soft delete option
-    var query = "DELETE FROM loan_applications WHERE id = " + id;
+    // FIXED: Using parameterized query to prevent SQL injection
+    var query = "DELETE FROM loan_applications WHERE id = ?";
     
-    db.query(query, function(err, result) {
+    db.query(query, [id], function(err, result) {
         if (err) {
             res.status(500).send(err);
         } else {
