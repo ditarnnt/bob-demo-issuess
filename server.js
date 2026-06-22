@@ -36,8 +36,7 @@ db.connect(function(err) {
     }
 });
 
-// BAD PRACTICE: Hardcoded JWT secret - major security issue
-var JWT_SECRET = 'my-super-secret-key-12345';
+var JWT_SECRET = process.env.JWT_SECRET;
 
 // BAD PRACTICE: Body parser deprecated usage
 app.use(bodyParser.json());
@@ -209,28 +208,13 @@ app.post('/api/calculate-loan', function(req, res) {
     });
 });
 
-// BAD PRACTICE: Debug endpoint in production
-app.get('/api/debug', function(req, res) {
-    res.send({
-        database: {
-            host: db.config.host,
-            user: db.config.user,
-            database: db.config.database
-        },
-        jwtSecret: JWT_SECRET,
-        environment: process.env
-    });
-});
-
 // BAD PRACTICE: No 404 handler
 // BAD PRACTICE: No global error handler
 
 // BAD PRACTICE: Server starts without checking database connection
 app.listen(PORT, function() {
     console.log('Server running on port ' + PORT);
-    // BAD PRACTICE: Logging sensitive information
     console.log('Database connected to ' + db.config.host);
-    console.log('JWT Secret: ' + JWT_SECRET);
 });
 
 // BAD PRACTICE: No graceful shutdown
